@@ -14,7 +14,7 @@ return new class extends Migration
         //
         Schema::create('customers', function (Blueprint $table) {
             $table->id(); // CustomerID as Primary Key
-            $table->string('username')->unique();
+            // $table->string('username')->unique();
             $table->string('email')->unique();
             // $table->timestamp('email_verified_at')->nullable();
             $table->string('firstName');

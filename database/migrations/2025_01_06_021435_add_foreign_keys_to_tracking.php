@@ -13,7 +13,11 @@ return new class extends Migration
                   ->references('id')
                   ->on('packages')
                   ->onDelete('cascade');
+                  
+            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null'); // Foreign key constraint
+
         });
+        
     }
 
     public function down(): void

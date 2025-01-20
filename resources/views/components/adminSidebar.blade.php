@@ -73,7 +73,7 @@
                     <span class="menu-icon">
                         <iconify-icon icon="ph:envelope-duotone"></iconify-icon>
                     </span>
-                    <span class="menu-text text-uppercase">Tracking</span>
+                    <span class="menu-text text-uppercase">Tracking & Packages</span>
                     <span class="menu-caret"><b class="caret"></b></span>
                 </a>
                 <div class="menu-submenu">
@@ -87,10 +87,20 @@
                             <span class="menu-text">Create</span>
                         </a>
                     </div>
+                    <div class="menu-item ">
+                        <a href="{{route('packages.create')}}" class="menu-link">
+                            <span class="menu-text">Create New Package</span>
+                        </a>
+                    </div>
+                    <div class="menu-item ">
+                        <a href="{{route('trackings.create')}}" class="menu-link">
+                            <span class="menu-text">Create New Tracking</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <div class="menu-item has-sub text-uppercase">
+            {{-- <div class="menu-item has-sub text-uppercase">
                 <a href="#" class="menu-link">
                     <span class="menu-icon">
                         <iconify-icon icon="ph:envelope-duotone"></iconify-icon>
@@ -110,7 +120,7 @@
                         </a>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <div class="menu-header">USER PORTAL</div>
 

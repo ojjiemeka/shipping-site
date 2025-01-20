@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Packages;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class PackagesController extends Controller
 {
@@ -21,7 +24,10 @@ class PackagesController extends Controller
      */
     public function create()
     {
-        //
+        return view('pages.admin.createPackages', [
+            'title' => 'Create Package Info',
+
+        ]);
     }
 
     /**
@@ -29,7 +35,32 @@ class PackagesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->all();
+
+        $packageValidated = $request->validate([
+            'package_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'weight' => 'required|numeric|min:0',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $package = Packages::create($packageValidated);
+
+             // Redirect with success message
+             Session::flash('success', 'Package created successfully!');
+             return redirect()->route('trackings.index');
+
+        } catch (Exception $e) {
+             // Log the error message for debugging
+            Log::error('Error creating package or tracking: ' . $e->getMessage());
+
+            // Return a response with an error message to the user
+            Session::flash('error', 'There was an issue creating the package record. Please try again.');
+            return redirect()->back();
+        }
+
+        // dd($packageValidated);
     }
 
     /**

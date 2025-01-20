@@ -16,7 +16,7 @@
                     <div class="row">
                         <div class="col-xl-9">
                             <h1 class="page-header">
-                                Create New Reciever
+                                {{$title}}
                             </h1>
 
                             <hr class="mb-4 opacity-3" />
@@ -43,18 +43,12 @@
                                                 <div class="nav-item col">
                                                     <a class="nav-link" id="step1-tab" href="#">
                                                         <div class="nav-no">1</div>
-                                                        <div class="nav-text">Receiver Details</div>
+                                                        <div class="nav-text">Enter Package Detials</div>
                                                     </a>
                                                 </div>
                                                 <div class="nav-item col">
-                                                    <a class="nav-link" id="step2-tab" href="#">
-                                                        <div class="nav-no">2</div>
-                                                        <div class="nav-text">Shipping Details</div>
-                                                    </a>
-                                                </div>
-                                                <div class="nav-item col">
-                                                    <a class="nav-link" id="step3-tab" href="#">
-                                                        <div class="nav-no">3</div>
+                                                    <a class="nav-link" id="step3-t2b" href="#">
+                                                        <div  class="nav-no">2</div>
                                                         <div class="nav-text">Review & Confirm</div>
                                                     </a>
                                                 </div>
@@ -62,69 +56,45 @@
                                         </div>
                                         <div class="card">
                                             <div class="card-body">
-                                                <form action="{{ route('clients.store') }}" method="POST"
-                                                    id="shippingForm">
+                                                <form action="{{ route('packages.store') }}" method="POST"
+                                                    id="trackingForm">
                                                     @csrf
                                                     <div class="step" id="step1">
                                                         <div class="row">
+                                                            
+
+                                                            <!-- Package Name -->
                                                             <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="firstName">First Name</label>
-                                                                <input type="text" class="form-control" id="firstName"
-                                                                    name="firstName" required>
+                                                                <label class="form-label" for="packageName">Package
+                                                                    Name</label>
+                                                                <input type="text" class="form-control" id="packageName"
+                                                                    name="package_name" required>
                                                             </div>
+
+                                                            <!-- Weight -->
                                                             <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="lastName">Last Name</label>
-                                                                <input type="text" class="form-control" id="lastName"
-                                                                    name="lastName" required>
+                                                                <label class="form-label" for="weight">Weight (kg)</label>
+                                                                <input type="number" step="0.01" class="form-control"
+                                                                    id="weight" name="weight" required>
                                                             </div>
+
+                                                            <!-- Amount -->
                                                             <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="email">Email</label>
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text">@</span>
-                                                                    <input type="email" class="form-control"
-                                                                        id="email" name="email" required>
-                                                                </div>
+                                                                <label class="form-label" for="amount">Amount</label>
+                                                                <input type="number" step="0.01" class="form-control"
+                                                                    id="amount" name="amount" required>
                                                             </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="phone">Phone
-                                                                    Number</label>
-                                                                <input type="tel" class="form-control" id="phone"
-                                                                    name="phone">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="step d-none" id="step2">
-                                                        <div class="row">
+
+                                                            <!-- Description -->
                                                             <div class="col-md-12 mb-3">
-                                                                <label class="form-label" for="address">Street Address</label>
-                                                                <textarea class="form-control" id="address" name="address" rows="2" required 
-                                                                    placeholder="Enter your complete street address"></textarea>
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="city">City</label>
-                                                                <input type="text" class="form-control" id="city" name="city" required>
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="state">State/Province</label>
-                                                                <input type="text" class="form-control" id="state" name="state" required>
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="zipCode">Zip/Postal Code</label>
-                                                                <input type="text" class="form-control" id="zipCode" name="zipCode" required>
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label" for="country">Country</label>
-                                                                <select class="form-select" id="country" name="country" required>
-                                                                    <option value="">Select Country</option>
-                                                                    <option value="USA">United States</option>
-                                                                    <option value="CAN">Canada</option>
-                                                                    <option value="GBR">United Kingdom</option>
-                                                                    <option value="AUS">Australia</option>
-                                                                </select>
+                                                                <label class="form-label"
+                                                                    for="description">Description</label>
+                                                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="step d-none" id="step3">
+
+                                                    <div class="step d-none" id="step2">
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <h5 class="mb-3">Review Your Information</h5>
@@ -162,6 +132,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('admin-assets/js/wizard.js') }}"></script>
+        <script src="{{ asset('admin-assets/js/packages.js') }}"></script>
     @endpush
 @endsection

@@ -75,8 +75,7 @@ class ClientsController extends Controller
         $customer = new Clients();
         $customer->fill($validatedData);
         if (!$customer->save()) {
-            Session::flash('error', 'Failed to store data. Please try again.');
-            return redirect()->route('clients.create');
+            return redirect()->route('clients.create')->with('error', 'Failed to store data. Please try again.');
         }
 
         // // Save the shipping information
@@ -90,13 +89,11 @@ class ClientsController extends Controller
         ]);
 
         if (!$addresses->save()) {
-            Session::flash('error', 'Failed to store data. Please try again.');
-            return redirect()->route('clients.create');
+            return redirect()->route('clients.create')->with('error', 'Failed to store data. Please try again.');
         }
     
         // dd('done');
-        Session::flash('success', 'Data has been successfully stored.');
-        return redirect()->route('clients.index');
+        return redirect()->route('clients.create')->with('success', 'Data has been successfully stored.');
 
 
     }

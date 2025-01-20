@@ -1,16 +1,17 @@
-class FormWizard {
+class PackageFormWizard {
     constructor() {
         this.currentStep = 1;
-        this.totalSteps = 3;
-        
+        this.totalSteps = 2;
+
         // Get DOM elements
         this.prevBtn = document.querySelector('#prevBtn');
         this.nextBtn = document.querySelector('#nextBtn');
         this.submitBtn = document.querySelector('#submitBtn');
-        
+        this.form = document.querySelector('#trackingForm');
+
         // Bind event listeners
         this.initializeEventListeners();
-        
+
         // Initialize the form
         this.updateSteps();
     }
@@ -21,26 +22,13 @@ class FormWizard {
     }
 
     updateSteps() {
-        // Hide all steps
         document.querySelectorAll('.step').forEach(step => step.classList.add('d-none'));
-        
-        // Show current step
-        const currentStepElement = document.querySelector(`#step${this.currentStep}`);
-        if (currentStepElement) {
-            currentStepElement.classList.remove('d-none');
-        }
-        
-        // Update navigation buttons
-        if (this.prevBtn) {
-            this.prevBtn.style.display = this.currentStep === 1 ? 'none' : 'block';
-        }
-        
-        if (this.nextBtn && this.submitBtn) {
-            this.nextBtn.style.display = this.currentStep === this.totalSteps ? 'none' : 'block';
-            this.submitBtn.style.display = this.currentStep === this.totalSteps ? 'block' : 'none';
-        }
-        
-        // Update tabs
+        document.querySelector(`#step${this.currentStep}`)?.classList.remove('d-none');
+
+        this.prevBtn.style.display = this.currentStep === 1 ? 'none' : 'block';
+        this.nextBtn.style.display = this.currentStep === this.totalSteps ? 'none' : 'block';
+        this.submitBtn.style.display = this.currentStep === this.totalSteps ? 'block' : 'none';
+
         document.querySelectorAll('.nav-link').forEach((tab, index) => {
             tab.classList.remove('completed', 'active');
             if (index + 1 < this.currentStep) {
@@ -53,8 +41,10 @@ class FormWizard {
 
     nextStep() {
         if (this.currentStep < this.totalSteps) {
+            if (!this.checkFormFields()) return;
             this.currentStep++;
             this.updateSteps();
+
             if (this.currentStep === this.totalSteps) {
                 this.populateReview();
             }
@@ -68,35 +58,46 @@ class FormWizard {
         }
     }
 
+    checkFormFields() {
+        const fields = [
+            { id: '#packageName', name: 'Package Name' },
+            { id: '#weight', name: 'Weight' },
+            { id: '#amount', name: 'Amount' },
+            { id: '#description', name: 'Description' }
+        ];
+
+        let allValid = true;
+        fields.forEach(field => {
+            const value = document.querySelector(field.id)?.value.trim();
+            if (!value) {
+                console.error(`${field.name} is missing or empty`);
+                allValid = false;
+            } else {
+                console.log(`${field.name}: ${value}`);
+            }
+        });
+        return allValid;
+    }
+
     populateReview() {
         const reviewContent = document.querySelector('#reviewContent');
         if (!reviewContent) return;
 
-        const formData = new FormData(document.querySelector('#shippingForm'));
-        let html = '<div class="table-responsive"><table class="table table-bordered">';
-        
+        const formData = new FormData(this.form);
+        let html = '<table class="table table-bordered">';
+
         formData.forEach((value, key) => {
-            // Skip _token and empty values
-            if (value && key !== '_token') {
-                // Format the key for display (convert camelCase to Title Case)
-                const formattedKey = key
-                    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-                    .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-                    .trim();
-                html += `
-                    <tr>
-                        <th class="w-25">${formattedKey}</th>
-                        <td>${value}</td>
-                    </tr>`;
+            if (key !== '_token' && value) { // Exclude CSRF token
+                const formattedKey = key.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase());
+                html += `<tr><th class="w-25">${formattedKey}</th><td>${value}</td></tr>`;
             }
         });
-        
-        html += '</table></div>';
+
+        html += '</table>';
         reviewContent.innerHTML = html;
-    }   
+    }
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new FormWizard();
+    new PackageFormWizard();
 });

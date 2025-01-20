@@ -19,7 +19,7 @@ class Addresses extends Model
 
     public function clients()
     {
-        return $this->belongsTo(Clients::class);
+        return $this->belongsTo(Clients::class, 'customer_id');
     }
 
     public function trackings()

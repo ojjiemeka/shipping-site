@@ -19,6 +19,6 @@ class Packages extends Model
     // You can define relationships here if needed. For example, if a package has many trackings
     public function trackings()
     {
-        return $this->hasMany(Tracking::class);
+        return $this->hasMany(Tracking::class, 'package_id', 'id');
     }
 }

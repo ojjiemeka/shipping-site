@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class TrackingController extends Controller
 {
@@ -102,7 +103,7 @@ class TrackingController extends Controller
 
                 // dd($trackingValidated, $package);
 
-            } 
+            }
             // Store the tracking
             $tracking = Tracking::create($trackingValidated);
 
@@ -128,7 +129,7 @@ class TrackingController extends Controller
         $tracking = Tracking::with(['address.clients', 'packages'])->find($id);
 
         // dd($id, $tracking);
-        
+
         if ($tracking) {
             return response()->json([
                 'id' => $tracking->id,
@@ -169,7 +170,25 @@ class TrackingController extends Controller
      */
     public function edit(string $id)
     {
-       
+
+        $trackingInformation = Tracking::with(['address.clients', 'packages'])->find($id);
+        $addresses = Addresses::all();
+        $packages = Packages::all();
+
+        // Format dates in the controller
+        $formattedShipDate = Carbon::parse($trackingInformation->ship_date)->format('Y-m-d');
+        $formattedDeliveryDate = Carbon::parse($trackingInformation->delivery_date)->format('Y-m-d');
+
+        //    dd($trackingInformation);
+
+        return view('pages.admin.editTracking', [
+            'title' => 'Edit Package Info',
+            'trackingInfo' => $trackingInformation,
+            'addresses' => $addresses,
+            'packages' => $packages,
+            'formattedShipDate' => $formattedShipDate,
+            'formattedDeliveryDate' => $formattedDeliveryDate
+        ]);
     }
 
     /**
@@ -177,7 +196,49 @@ class TrackingController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $data = $request->all();
+        // dd([$request->all(), $id]);
+
+        // dd($data['package_id']);
+        $data['is_delayed'] = $request->has('is_delayed') ? true : false;
+        $data['is_returned'] = $request->has('is_returned') ? true : false;
+        $data['is_insured'] = $request->has('is_insured') ? true : false;
+
+        // Validate tracking data
+        $trackingValidated = $request->validate([
+            'tracking_number' => 'required|exists:tracking,tracking_number',
+            'address_id' => 'required|exists:addresses,id', // Ensure the address_id exists in the addresses table
+            'package_id' => 'required|exists:packages,id', // Ensure package_id exists in the packages table
+            'shipping_method' => 'nullable|string|in:standard,express,overnight',
+            'ship_date' => 'nullable|date',
+            'delivery_date' => 'nullable|date|after_or_equal:ship_date',
+            'package_status' => 'required|string|in:in_transit,delivered,pending',
+            'carrier_name' => 'nullable|string|max:255',
+            'shipping_cost' => 'nullable|numeric|min:0',
+            'current_location' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+            'is_delayed' => 'nullable|boolean',
+            'is_returned' => 'nullable|boolean',
+            'is_insured' => 'nullable|boolean',
+        ]);
+
+        
+        $newTracking = Tracking::find($id);
+
+        // Check if the tracking exists
+        if (!$newTracking) {
+            return redirect()->back()->withErrors(['error' => 'Tracking Details not found.']);
+        }
+
+        // Update package details
+        try {
+            $newTracking->update($trackingValidated);
+            return redirect()->route('trackings.index')->with('success', 'Tracking has been updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Something went wrong. Please try again.']);
+        }
+        
+        // dd($trackingValidated,$newTracking);
     }
 
     /**
@@ -185,6 +246,18 @@ class TrackingController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $tracking = Tracking::find($id);
+
+        // dd($tracking, $id);
+
+        // Check if the tracking exists
+        if (!$tracking) {
+            return redirect()->back()->withErrors(['error' => 'Tracking Details not found.']);
+        }
+
+        $tracking->delete();
+        return redirect()->back()->with(['success' => 'Tracking deleted successfully.']);
+
+
     }
 }

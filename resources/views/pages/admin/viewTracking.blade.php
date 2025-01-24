@@ -148,13 +148,19 @@
                                                         <!-- Tracking Details -->
                                                         <h6>Tracking</h6>
                                                         <ul>
-                                                            <li class="mb-2">Tracking Number: <span class="text-lime-400" id="tracking-number"></span></li>
-                                                            <li class="mb-2">Status: <span id="package-status"></span></li>
-                                                            <li class="mb-2">Shipping Method: <span id="shipping-method"></span></li>
+                                                            <li class="mb-2">Tracking Number: <span class="text-lime-400"
+                                                                    id="tracking-number"></span></li>
+                                                            <li class="mb-2">Status: <span id="package-status"></span>
+                                                            </li>
+                                                            <li class="mb-2">Shipping Method: <span
+                                                                    id="shipping-method"></span></li>
                                                             <li class="mb-2">Ship Date: <span id="ship-date"></span></li>
-                                                            <li class="mb-2">Delivery Date: <span id="delivery-date"></span></li>
-                                                            <li class="mb-2">Carrier Name: <span id="carrier-name"></span></li>
-                                                            <li class="mb-2">Shipping Cost: <span id="shipping-cost"></span></li>
+                                                            <li class="mb-2">Delivery Date: <span
+                                                                    id="delivery-date"></span></li>
+                                                            <li class="mb-2">Carrier Name: <span id="carrier-name"></span>
+                                                            </li>
+                                                            <li class="mb-2">Shipping Cost: <span
+                                                                    id="shipping-cost"></span></li>
                                                             <li class="mb-2">Delay: <span id="is-delayed"></span></li>
                                                             <li class="mb-2">Returned: <span id="is-returned"></span></li>
                                                             <li class="mb-2">Insured: <span id="is-insured"></span></li>
@@ -174,7 +180,8 @@
                                                         <h6>Package</h6>
                                                         <ul>
                                                             <li class="mb-2">Name: <span id="package-name"></span></li>
-                                                            <li class="mb-2">Description: <span id="description"></span></li>
+                                                            <li class="mb-2">Description: <span id="description"></span>
+                                                            </li>
                                                             <li class="mb-2">Weight: <span id="weight"></span></li>
                                                             <li class="mb-2">Amount: <span id="amount"></span></li>
                                                         </ul>
@@ -257,6 +264,38 @@
                                                 </form>
                                             </td>
                                         </tr>
+
+                                        @if (session('warning'))
+                                            <div class="modal fade" id="modalSm{{ $package->id }}">
+                                                <div class="modal-dialog modal-sm">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Package Details</h5>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p><strong>Name:</strong> {{ $package->package_name ?? 'N/A' }}
+                                                            </p>
+                                                            <p><strong>Description:</strong>
+                                                                {{ $package->description ?? 'N/A' }}</p>
+                                                            <p><strong>Weight:</strong> {{ $package->weight ?? 'N/A' }} kg
+                                                            </p>
+                                                            <p><strong>Amount:</strong> ${{ $package->amount ?? 'N/A' }}
+                                                            </p>
+                                                            <p><strong>Warning:</strong> {{ session('warning') }}</p>
+
+                                                            <form id="deleteForm{{ $package->id }}" action="{{ route('packages.destroy', $package->id) }}" method="POST">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <input type="hidden" name="confirm_delete" value="1"> <!-- NEW HIDDEN INPUT -->
+                                                                <button type="submit" class="btn btn-danger">Yes, Delete Anyway</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>
@@ -291,4 +330,37 @@
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     @endpush
+
+    @if (session('warning'))
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                let packageId = "{{ session('package_id') }}"; // Retrieve package ID from session
+                console.log("Tracking ID:", packageId); // Debugging log
+
+                let checkLoader = setInterval(function() {
+                    let loader = document.querySelector('.loader');
+                    if (!loader || loader.style.display === 'none') {
+                        clearInterval(checkLoader);
+
+                        var modalId = "modalSm" + packageId; // Correct JavaScript concatenation
+                        console.log("Modal ID:", modalId); // Debugging log
+
+                        var myModalElement = document.getElementById(modalId);
+                        if (myModalElement) {
+                            var myModal = new bootstrap.Modal(myModalElement);
+                            myModal.show();
+
+                            myModalElement.addEventListener('hidden.bs.modal', function() {
+                                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                                document.body.classList.remove('modal-open');
+                                document.body.style.overflow = '';
+                            });
+                        } else {
+                            console.error("Modal with ID", modalId, "not found.");
+                        }
+                    }
+                }, 500);
+            });
+        </script>
+    @endif
 @endsection

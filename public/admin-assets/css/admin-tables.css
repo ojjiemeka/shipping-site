@@ -1,0 +1,42 @@
+/* Packages Table Optimization */
+.table-packages {
+    --bs-table-bg: #1a1a1a;
+    --bs-table-striped-bg: #262626;
+    --bs-table-hover-bg: #333;
+}
+
+.table-packages th.sortable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table-packages th.sortable:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.table-packages .actions-column {
+    width: 150px;
+}
+
+.hover-shadow {
+    transition: box-shadow 0.2s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+}
+
+.table-responsive {
+    border-radius: 0.625rem;
+    overflow: hidden;
+}
+
+.table-packages td {
+    vertical-align: middle;
+    padding: 0.75rem 1.25rem;
+}
+
+.table-packages thead th {
+    background: #212529;
+    padding: 1rem 1.25rem;
+} 

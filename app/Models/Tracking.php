@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Tracking extends Model 
+class Tracking extends Model
 {
     protected $table = 'tracking';
 
@@ -29,14 +29,32 @@ class Tracking extends Model
 
     public $timestamps = false;
 
+    protected $dates = [
+        'ship_date',
+        'delivery_date',
+        'created_at',
+        'updated_at'
+    ];
+
+    // Or for Laravel 8+
+    protected $casts = [
+        'ship_date' => 'datetime',
+        'delivery_date' => 'datetime',
+        'is_delayed' => 'boolean',
+        'is_returned' => 'boolean',
+        'is_insured' => 'boolean',
+    ];
+
+
+
     public function address()
     {
-        return $this->belongsTo(Addresses::class, 'address_id');
+        return $this->belongsTo(Addresses::class);
     }
 
-    public function packages()
+    public function package()
     {
-        return $this->belongsTo(Packages::class, 'package_id', 'id');
+        return $this->belongsTo(Packages::class);
     }
 
     public function statusHistory()

@@ -1,0 +1,1 @@
+Showing {{ $clients->firstItem() }} to {{ $clients->lastItem() }} of {{ $clients->total() }} entries 

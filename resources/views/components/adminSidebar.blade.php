@@ -58,12 +58,12 @@
                 <div class="menu-submenu text-uppercase">
                     <div class="menu-item ">
                         <a href="{{route('clients.index')}}" class="menu-link">
-                            <span class="menu-text">View</span>
+                            <span class="menu-text">View All Info</span>
                         </a>
                     </div>
                     <div class="menu-item ">
                         <a href="{{route('clients.create')}}" class="menu-link">
-                            <span class="menu-text">Create</span>
+                            <span class="menu-text">Add User & Address</span>
                         </a>
                     </div>
                 </div>
@@ -79,12 +79,7 @@
                 <div class="menu-submenu">
                     <div class="menu-item ">
                         <a href="{{route('trackings.index')}}" class="menu-link">
-                            <span class="menu-text">View</span>
-                        </a>
-                    </div>
-                    <div class="menu-item ">
-                        <a href="{{route('trackings.create')}}" class="menu-link">
-                            <span class="menu-text">Create</span>
+                            <span class="menu-text">View All Info</span>
                         </a>
                     </div>
                     <div class="menu-item ">
@@ -94,7 +89,7 @@
                     </div>
                     <div class="menu-item ">
                         <a href="{{route('trackings.create')}}" class="menu-link">
-                            <span class="menu-text">Create New Tracking</span>
+                            <span class="menu-text">Create Tracking Information</span>
                         </a>
                     </div>
                 </div>

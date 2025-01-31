@@ -4,7 +4,7 @@
     @include('components.loader')
 
     @include('components.adminHeader', [
-        'title' => $title,
+        // 'title' => $title,
     ])
 
     @include('components.adminSidebar')
@@ -16,7 +16,7 @@
                     <div class="row">
                         <div class="col-xl-12">
                             <h1 class="page-header">
-                                Create New Receiver
+                                Update Current Receiver
                             </h1>
 
                             <hr class="mb-4 opacity-3" />
@@ -104,10 +104,8 @@
                                                                                 <option value="{{ $package->id }}"
                                                                                     {{ old('package_id', $trackingInfo->package_id) == $package->id ? 'selected' : '' }}
                                                                                     data-p_name="{{ $package->package_name }}"
-                                                                                    data-description="{{ $package->description }}"
-                                                                                    data-weight="{{ $package->weight }}"
-                                                                                    data-amount="{{ $package->amount }}">
-                                                                                    {{ $package->package_name }}
+                                                                                    data-weight="{{ $package->weight }}">
+                                                                                    {{ $package->package_name }} ({{ $package->weight }}kg)
                                                                                 </option>
                                                                             @endforeach
                                                                         </select>
@@ -146,7 +144,7 @@
                                                                     <div class="col-sm-10">
                                                                         <input type="date" class="form-control"
                                                                             id="shipDate" name="ship_date"
-                                                                            value="{{ old('ship_date', $formattedShipDate) }}">
+                                                                            value="{{ $formattedShipDate ?? old('ship_date') }}">
 
                                                                     </div>
                                                                 </div>
@@ -159,7 +157,7 @@
                                                                     <div class="col-sm-10">
                                                                         <input type="date" class="form-control"
                                                                             id="deliveryDate" name="delivery_date"
-                                                                            value="{{ old('delivery_date', $formattedDeliveryDate) }}">
+                                                                            value="{{ $formattedDeliveryDate ?? old('delivery_date') }}">
                                                                     </div>
                                                                 </div>
 
@@ -218,31 +216,11 @@
                                                                         <label
                                                                             class="col-form-label col-sm-2 pt-0">Status</label>
                                                                         <div class="col-sm-10">
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input"
-                                                                                    type="radio" name="package_status"
-                                                                                    value="in_transit"
-                                                                                    {{ old('package_status', $trackingInfo->package_status) == 'in_transit' ? 'checked' : '' }}>
-                                                                                <label class="form-check-label"
-                                                                                    for="statusInTransit">In
-                                                                                    Transit</label>
-                                                                            </div>
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input"
-                                                                                    type="radio" name="package_status"
-                                                                                    value="delivered"
-                                                                                    {{ old('package_status', $trackingInfo->package_status) == 'delivered' ? 'checked' : '' }}>
-                                                                                <label class="form-check-label"
-                                                                                    for="statusDelivered">Delivered</label>
-                                                                            </div>
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input"
-                                                                                    type="radio" name="package_status"
-                                                                                    value="pending"
-                                                                                    {{ old('package_status', $trackingInfo->package_status) == 'pending' ? 'checked' : '' }}>
-                                                                                <label class="form-check-label"
-                                                                                    for="statusPending">Pending</label>
-                                                                            </div>
+                                                                            <select name="package_status" class="form-select" required>
+                                                                                <option value="pending" {{ old('package_status', $trackingInfo->package_status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                                                <option value="in_transit" {{ old('package_status', $trackingInfo->package_status) == 'in_transit' ? 'selected' : '' }}>In Transit</option>
+                                                                                <option value="delivered" {{ old('package_status', $trackingInfo->package_status) == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                                                            </select>
                                                                         </div>
                                                                     </div>
                                                                 </fieldset>
@@ -314,7 +292,6 @@
                                         </div>
                                     </div>
                                     <div class="col-4">
-
                                         <!-- BEGIN #selectMenu -->
                                         <div id="selectMenu" class="mb-5">
                                             <div class="card">
@@ -326,27 +303,25 @@
                                                         <!-- Address -->
                                                         <div class="col-md-6 mb-3">
                                                             <label class="form-label" for="address">Address</label>
-                                                            <input type="text" class="form-control" id="address"
+                                                            <input type="text" class="form-control" id="address" 
                                                                 name="address" readonly required>
                                                         </div>
 
                                                         <!-- City -->
                                                         <div class="col-md-6 mb-3">
                                                             <label class="form-label" for="city">City</label>
-                                                            <input type="text" class="form-control" id="city"
+                                                            <input type="text" class="form-control" id="city" 
                                                                 name="city" readonly required>
                                                         </div>
 
                                                         <!-- Country -->
                                                         <div class="col-md-6 mb-3">
                                                             <label class="form-label" for="country">Country</label>
-                                                            <input type="text" class="form-control" id="country"
+                                                            <input type="text" class="form-control" id="country" 
                                                                 name="country" readonly required>
                                                         </div>
                                                     </div>
                                                 </div>
-
-
                                             </div>
                                         </div>
                                     </div>
@@ -361,26 +336,40 @@
                             <script>
                                 document.addEventListener("DOMContentLoaded", function() {
                                     const addressSelect = document.getElementById('address_id');
+                                    const packageSelect = document.getElementById('package_id');
 
-                                    addressSelect.addEventListener('change', function() {
-                                        // Get selected option
+                                    function updateDetails(selectElement, prefix) {
+                                        const selectedOption = selectElement.options[selectElement.selectedIndex];
+                                        document.getElementById(prefix + 'Name').value = selectedOption.dataset.address || '';
+                                        document.getElementById(prefix + 'City').value = selectedOption.dataset.city || '';
+                                        document.getElementById(prefix + 'Country').value = selectedOption.dataset.country || '';
+                                    }
+
+                                    addressSelect.addEventListener('change', () => {
                                         const selectedOption = addressSelect.options[addressSelect.selectedIndex];
-
-                                        // Get address, city, and country from data attributes
-                                        const address = selectedOption.getAttribute('data-address');
-                                        const city = selectedOption.getAttribute('data-city');
-                                        const country = selectedOption.getAttribute('data-country');
-
-                                        // Populate the inputs with these values
-                                        document.getElementById('address').value = address;
-                                        document.getElementById('city').value = city;
-                                        document.getElementById('country').value = country;
-
-                                        // Disable the fields to make them non-editable
-                                        document.getElementById('address').disabled = true;
-                                        document.getElementById('city').disabled = true;
-                                        document.getElementById('country').disabled = true;
+                                        document.getElementById('address').value = selectedOption.dataset.address;
+                                        document.getElementById('city').value = selectedOption.dataset.city;
+                                        document.getElementById('country').value = selectedOption.dataset.country;
                                     });
+
+                                    // Initialize package display
+                                    updatePackageDisplay(packageSelect);
+                                    
+                                    // Live update on change
+                                    packageSelect.addEventListener('change', function() {
+                                        updatePackageDisplay(this);
+                                    });
+
+                                    function updatePackageDisplay(selectElement) {
+                                        const selectedOption = selectElement.options[selectElement.selectedIndex];
+                                        const displayName = document.getElementById('packageName');
+                                        const displayWeight = document.getElementById('packageWeight');
+                                        
+                                        // Fallback to option text if data attribute missing
+                                        displayName.value = selectedOption.dataset.p_name || selectedOption.textContent;
+                                        displayWeight.value = selectedOption.dataset.weight ? 
+                                            `${selectedOption.dataset.weight} kg` : '';
+                                    }
                                 });
                             </script>
 

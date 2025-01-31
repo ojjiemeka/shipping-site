@@ -165,7 +165,6 @@ class TrackingFormWizard {
         const reviewContent = document.querySelector('#reviewContent');
         if (!reviewContent) return;
     
-        // Get all form data
         const formData = new FormData(document.querySelector('#trackingForm'));
         let html = '<div class="table-responsive"><table class="table table-bordered">';
     
@@ -211,34 +210,44 @@ class TrackingFormWizard {
     
         // Add other form data
         formData.forEach((value, key) => {
-            if (value && key !== '_token') {
-                // Format key for display (capitalize and replace underscores)
-                const formattedKey = key
-                    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-                    .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-                    .replace(/_/g, ' ') // Replace underscores with spaces
-                    .trim();
+            // Explicitly exclude these fields from display
+            const excludedFields = [
+                'package_id', 
+                'address_id',
+                'package_name',
+                'weight',
+                'amount',
+                'description'
+            ];
+            
+            if (excludedFields.includes(key) || !value || key === '_token') return;
+
+            // Format key for display (capitalize and replace underscores)
+            const formattedKey = key
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase())
+                .replace(/_/g, ' ')
+                .trim();
     
-                // Format boolean values for display (if any)
-                const formatBoolean = (value) => {
-                    if (value === '1') return 'Yes';
-                    if (value === '0') return 'No';
-                    return value;
-                };
+            // Format boolean values for display (if any)
+            const formatBoolean = (value) => {
+                if (value === '1') return 'Yes';
+                if (value === '0') return 'No';
+                return value;
+            };
     
-                // Add the row to the review table
-                html += `
-                    <tr>
-                        <th class="w-25">${formattedKey}</th>
-                        <td>${['is_delayed', 'is_returned', 'is_insured'].includes(key) ? formatBoolean(value) : value}</td>
-                    </tr>`;
-            }
+            // Add the row to the review table
+            html += `
+                <tr>
+                    <th class="w-25">${formattedKey}</th>
+                    <td>${['is_delayed', 'is_returned', 'is_insured'].includes(key) ? formatBoolean(value) : value}</td>
+                </tr>`;
         });
     
         html += '</table></div>';
         reviewContent.innerHTML = html; // Display review content in Step 3
     }
-    }    
+}    
 
 
 // Initialize the tracking form wizard when DOM is fully loaded

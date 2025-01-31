@@ -13,251 +13,249 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class TrackingController extends Controller
 {
+    const ITEMS_PER_PAGE = 15;
+
     /**
-     * Display a listing of the resource.
+     * Display paginated tracking records with eager loading
+     * 
+     * @return \Illuminate\View\View
      */
     public function index()
     {
-        $trackings = Tracking::with(['address.clients', 'packages'])->get();
-        $packages = Packages::all();
-        // $clients = Clients::all();
+        try {
+            $trackings = Tracking::with(['address', 'package'])
+                ->orderByDesc('id')
+                ->paginate(self::ITEMS_PER_PAGE);
 
-        // dd($trackings);
+            return view('pages.admin.viewTracking', [
+                'trackings' => $trackings,
+                'packages' => Packages::withCount('trackings')->paginate(self::ITEMS_PER_PAGE)
+            ]);
 
-        return view('pages.admin.viewTracking', [
-            'title' => 'Tracking Info',
-
-            'trackings' => $trackings,
-            'packages' => $packages,
-        ]);
+        } catch (\Exception $e) {
+            $this->logError('Tracking index error', $e);
+            return redirect()->back()->with('error', 'Failed to load tracking data');
+        }
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show form for creating new tracking record
+     * 
+     * @return \Illuminate\View\View
      */
     public function create()
     {
-        $addresses = Addresses::all();
-        $packages = Packages::all();
-        return view('pages.admin.createTracking', [
-            'title' => 'Create Tracking Info',
-            'description' => 'Create New Info',
-            'addresses' => $addresses,
-            'packages' => $packages,
 
-        ]);
+        try {
+            return view('pages.admin.createTracking', [
+                'trackingInfo' => new Tracking(),
+                'addresses' => Addresses::all(),
+                'packages' => Packages::all()
+            ]);
+
+        } catch (\Exception $e) {
+            $this->logError('Tracking create form error', $e);
+            return redirect()->back()->with('error', 'Failed to load creation form');
+        }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store new tracking record with transaction safety
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
-        // Preprocess request data: default unchecked checkboxes to false
-        $data = $request->all();
-
-        // dd($data['package_id']);
-        $data['is_delayed'] = $request->has('is_delayed') ? true : false;
-        $data['is_returned'] = $request->has('is_returned') ? true : false;
-        $data['is_insured'] = $request->has('is_insured') ? true : false;
-
-        // Validate tracking data
-        $trackingValidated = $request->validate([
-            'tracking_number' => 'required|unique:tracking,tracking_number|max:50',
-            'address_id' => 'required|exists:addresses,id', // Ensure the address_id exists in the addresses table
-            'shipping_method' => 'nullable|string|in:standard,express,overnight',
-            'ship_date' => 'nullable|date',
-            'delivery_date' => 'nullable|date|after_or_equal:ship_date',
-            // 'delivered_at' => 'nullable|date|after_or_equal:ship_date',
-            'package_status' => 'required|string|in:in_transit,delivered,pending',
-            'carrier_name' => 'nullable|string|max:255',
-            'shipping_cost' => 'nullable|numeric|min:0',
-            'current_location' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'is_delayed' => 'nullable|boolean',
-            'is_returned' => 'nullable|boolean',
-            'is_insured' => 'nullable|boolean',
-        ]);
-
-
-        // dd($packageValidated, $trackingValidated);
-
+        // dd($request->all());
 
         try {
+            $validated = $this->validateTrackingRequest($request);
+            
+            DB::transaction(function () use ($validated) {
+                Tracking::create($validated);
+            });
 
-            // Check if a package is selected or new package data is provided
-            $packageValidated = [];
-            if ($request->has('package_id')) {
-                // Package selected from the existing packages
-                $package = Packages::findOrFail($request->package_id);
-                // $packageValidated['package_name'] = $package->package_name;
-                // $packageValidated['weight'] = $package->weight;
-                // $packageValidated['amount'] = $package->amount;
-                // $packageValidated['description'] = $package->description;
+            return redirect()->route('trackings.index')
+                ->with('success', 'Tracking record created successfully');
 
-                // Store the package and get its ID
-                $trackingValidated['package_id'] = $package->id; // Associate package_id with tracking
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
 
-                // dd($trackingValidated, $package);
-
-            }
-            // Store the tracking
-            $tracking = Tracking::create($trackingValidated);
-
-            // dd($package, $tracking);
-            // Redirect with success message
-            Session::flash('success', 'Package and Tracking created successfully!');
-            return redirect()->route('trackings.index');
-        } catch (Exception $e) {
-            // Log the error message for debugging
-            Log::error('Error creating package or tracking: ' . $e->getMessage());
-
-            // Return a response with an error message to the user
-            Session::flash('error', 'There was an issue creating the package or tracking record. Please try again.');
-            return redirect()->back();
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $tracking = Tracking::with(['address.clients', 'packages'])->find($id);
-
-        // dd($id, $tracking);
-
-        if ($tracking) {
-            return response()->json([
-                'id' => $tracking->id,
-                'tracking' => [
-                    'tracking_number' => $tracking->tracking_number,
-                    'package_status' => $tracking->package_status,
-                    'shipping_method' => $tracking->shipping_method,
-                    'ship_date' => $tracking->ship_date,
-                    'delivery_date' => $tracking->delivery_date,
-                    'delivery_date' => $tracking->delivery_date,
-                    'carrier_name' => $tracking->carrier_name,
-                    'shipping_cost' => $tracking->shipping_cost,
-                    'is_delayed' => $tracking->is_delayed,
-                    'is_returned' => $tracking->is_returned,
-                    'is_insured' => $tracking->is_insured,
-                ],
-                'address' => [
-                    'address' => $tracking->address->address,
-                    'city' => $tracking->address->city,
-                    'state' => $tracking->address->state,
-                    'zipCode' => $tracking->address->zipCode,
-                    'country' => $tracking->address->country
-                ],
-                'packages' => [
-                    'package_name' => $tracking->packages->package_name,
-                    'description' => $tracking->packages->description,
-                    'weight' => $tracking->packages->weight,
-                    'amount' => $tracking->packages->amount
-                ],
-            ]);
-        } else {
-            return response()->json(['error' => 'Tracking not found'], 404);
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-
-        $trackingInformation = Tracking::with(['address.clients', 'packages'])->find($id);
-        $addresses = Addresses::all();
-        $packages = Packages::all();
-
-        // Format dates in the controller
-        $formattedShipDate = Carbon::parse($trackingInformation->ship_date)->format('Y-m-d');
-        $formattedDeliveryDate = Carbon::parse($trackingInformation->delivery_date)->format('Y-m-d');
-
-        //    dd($trackingInformation);
-
-        return view('pages.admin.editTracking', [
-            'title' => 'Edit Package Info',
-            'trackingInfo' => $trackingInformation,
-            'addresses' => $addresses,
-            'packages' => $packages,
-            'formattedShipDate' => $formattedShipDate,
-            'formattedDeliveryDate' => $formattedDeliveryDate
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $data = $request->all();
-        // dd([$request->all(), $id]);
-
-        // dd($data['package_id']);
-        $data['is_delayed'] = $request->has('is_delayed') ? true : false;
-        $data['is_returned'] = $request->has('is_returned') ? true : false;
-        $data['is_insured'] = $request->has('is_insured') ? true : false;
-
-        // Validate tracking data
-        $trackingValidated = $request->validate([
-            'tracking_number' => 'required|exists:tracking,tracking_number',
-            'address_id' => 'required|exists:addresses,id', // Ensure the address_id exists in the addresses table
-            'package_id' => 'required|exists:packages,id', // Ensure package_id exists in the packages table
-            'shipping_method' => 'nullable|string|in:standard,express,overnight',
-            'ship_date' => 'nullable|date',
-            'delivery_date' => 'nullable|date|after_or_equal:ship_date',
-            'package_status' => 'required|string|in:in_transit,delivered,pending',
-            'carrier_name' => 'nullable|string|max:255',
-            'shipping_cost' => 'nullable|numeric|min:0',
-            'current_location' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'is_delayed' => 'nullable|boolean',
-            'is_returned' => 'nullable|boolean',
-            'is_insured' => 'nullable|boolean',
-        ]);
-
-        
-        $newTracking = Tracking::find($id);
-
-        // Check if the tracking exists
-        if (!$newTracking) {
-            return redirect()->back()->withErrors(['error' => 'Tracking Details not found.']);
-        }
-
-        // Update package details
-        try {
-            $newTracking->update($trackingValidated);
-            return redirect()->route('trackings.index')->with('success', 'Tracking has been updated successfully.');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Something went wrong. Please try again.']);
+            $this->logError('Tracking store error', $e);
+            return redirect()->back()
+                ->with('error', 'Failed to create tracking record')
+                ->withInput();
         }
-        
-        // dd($trackingValidated,$newTracking);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Show form for editing existing tracking record
+     * 
+     * @param  Tracking  $tracking
+     * @return \Illuminate\View\View
      */
-    public function destroy(string $id)
+    public function edit(Tracking $tracking)
     {
-        $tracking = Tracking::find($id);
+        try {
+            return view('pages.admin.editTracking', [
+                'trackingInfo' => $tracking,
+                'addresses' => Addresses::all(),
+                'packages' => Packages::all(),
+                'formattedShipDate' => optional($tracking->ship_date)->format('Y-m-d'),
+                'formattedDeliveryDate' => optional($tracking->delivery_date)->format('Y-m-d')
+            ]);
 
-        // dd($tracking, $id);
-
-        // Check if the tracking exists
-        if (!$tracking) {
-            return redirect()->back()->withErrors(['error' => 'Tracking Details not found.']);
+        } catch (\Exception $e) {
+            $this->logError('Tracking edit error', $e);
+            return redirect()->back()->with('error', 'Failed to load edit form');
         }
+    }
 
-        $tracking->delete();
-        return redirect()->back()->with(['success' => 'Tracking deleted successfully.']);
+    /**
+     * Update existing tracking record with transaction safety
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  Tracking  $tracking
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, Tracking $tracking)
+    {
 
+        try {
+            $validated = $this->validateTrackingRequest($request, $tracking);
+            
+            DB::transaction(function () use ($tracking, $validated) {
+                // dd($tracking, $validated);
 
+                $tracking->update($validated);
+            });
+
+            return redirect()->route('trackings.index')
+                ->with('success', 'Tracking record updated successfully');
+
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+
+        } catch (\Exception $e) {
+            $this->logError('Update failed for tracking '.$tracking->id, $e);
+            return redirect()->back()
+                ->with('error', 'Update failed: '.$e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Delete tracking record with dependency checks
+     * 
+     * @param  Tracking  $tracking
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Tracking $tracking)
+    {
+        try {
+            DB::transaction(function () use ($tracking) {
+                $this->validatePackageDependencies($tracking);
+                $tracking->delete();
+            });
+
+            return redirect()->route('trackings.index')
+                ->with('success', 'Tracking record deleted successfully');
+
+        } catch (\Exception $e) {
+            $this->logError('Tracking delete error', $e);
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Centralized validation for tracking requests
+     */
+    private function validateTrackingRequest(Request $request, ?Tracking $tracking = null): array
+    {
+        $validated = $request->validate([
+            'tracking_number' => [
+                'required',
+                'max:255',
+                Rule::unique('tracking')->ignore($tracking->id ?? null)
+            ],
+            'address_id' => 'required|exists:addresses,id',
+            'package_id' => 'required|exists:packages,id',
+            'shipping_method' => 'required|in:standard,express,overnight',
+            'ship_date' => 'required|date',
+            'delivery_date' => 'required|date|after:ship_date',
+            'carrier_name' => 'required|max:255',
+            'current_location' => 'required|string|max:255',
+            'shipping_cost' => 'required|numeric|min:0',
+            'package_status' => 'required|in:pending,in_transit,delivered',
+            'is_delayed' => 'sometimes|boolean',
+            'is_returned' => 'sometimes|boolean',
+            'is_insured' => 'sometimes|boolean',
+            'notes' => 'nullable|string|max:2000'  // Increased max length for notes
+        ]);
+        
+        // Format dates for database
+        $validated['ship_date'] = Carbon::parse($validated['ship_date'])->toDateTimeString();
+        $validated['delivery_date'] = Carbon::parse($validated['delivery_date'])->toDateTimeString();
+
+        return $validated;
+
+        // dd($validated);
+    }
+
+    /**
+     * Validate package dependencies before deletion
+     */
+    private function validatePackageDependencies(Tracking $tracking): void
+    {
+        if ($tracking->package()->exists()) {
+            throw new \Exception('Cannot delete tracking with associated package');
+        }
+    }
+
+    /**
+     * Format tracking dates for display
+     */
+    private function formatTrackingDates(Tracking $tracking): array
+    {
+        return [
+            'ship_date' => $tracking->ship_date?->format('Y-m-d'),
+            'delivery_date' => $tracking->delivery_date?->format('Y-m-d')
+        ];
+    }
+
+    /**
+     * Centralized error logging
+     */
+    private function logError(string $message, \Exception $e): void
+    {
+        Log::error("$message: {$e->getMessage()}", [
+            'exception' => $e,
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+
+    public function show(Tracking $tracking)
+    {
+        $tracking->load(['address', 'package']);
+        
+        return response()->json([
+            'tracking' => $tracking,
+            'address' => $tracking->address,
+            'package' => $tracking->package,
+            'statusBadge' => view('partials.status-badge', ['status' => $tracking->package_status])->render()
+        ]);
     }
 }

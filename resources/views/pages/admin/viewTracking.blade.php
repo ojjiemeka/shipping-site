@@ -4,7 +4,7 @@
     @include('components.loader')
 
     @include('components.adminHeader', [
-        'title' => $title,
+        // 'title' => $title,
     ])
 
     @include('components.adminSidebar')
@@ -39,284 +39,149 @@
                             <table class="table table-hover text-nowrap small mb-4">
                                 <thead>
                                     <tr class="text-uppercase">
-                                        <th></th>
-                                        <th>Client Name</th>
-                                        <th>Address</th>
-                                        <th>Tracking Number</th>
-                                        <th>Package Name</th>
-                                        <th>Package Status</th>
-                                        <th>Shipping Method</th>
-                                        {{-- <th>Shipping Date</th>
-                                        <th>Estimated Delivery Date</th> --}}
-                                        <th>Action</th>
+                                        <th>@lang('tracking.columns.client')</th>
+                                        <th>@lang('tracking.columns.tracking')</th>
+                                        <th>@lang('tracking.columns.package')</th>
+                                        <th>@lang('tracking.columns.status')</th>
+                                        <th>@lang('tracking.columns.shipping')</th>
+                                        <th>@lang('tracking.columns.actions')</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($trackings as $tracking)
+                                    @forelse ($trackings as $tracking)
                                         <tr>
-                                            <td class="w-10px align-middle">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="product{{ $loop->iteration }}">
-                                                    <label class="form-check-label"
-                                                        for="product{{ $loop->iteration }}"></label>
-                                                </div>
+                                            <td>
+                                                {{ optional($tracking->address->client)->fullName ?? 'N/A' }}
                                             </td>
-                                            <!-- Address -->
-                                            {{-- @dd($tracking->address) --}}
-                                            @if ($tracking->address && $tracking->address->clients)
-                                                <td class="align-middle">
-                                                    {{ $tracking->address->clients->firstName }}
-                                                    {{ $tracking->address->clients->lastName }}
-                                                    <br>
-                                                </td>
-                                                <td>
-                                                    {{ $tracking->address->address }}<br>
-                                                    {{ $tracking->address->city }}, {{ $tracking->address->state }}
-                                                    {{ $tracking->address->zip_code }}<br>
-                                                    {{ $tracking->address->country }}
-                                                </td>
-                                            @else
-                                                <td colspan="5" class="text-center">No address available</td>
-                                            @endif
-                                            <!-- Tracking Number -->
-                                            <td class="align-middle"><a
-                                                    href="page_order_details.html">{{ $tracking->tracking_number }}</a></td>
-                                            <!-- Package Name -->
-                                            <td class="align-middle">{{ $tracking->packages->package_name }}</td>
-                                            <!-- Package Status -->
-                                            <td class="align-middle">
-                                                @if ($tracking->package_status == 'pending')
-                                                    <span
-                                                        class="badge bg-yellow bg-opacity-15 text-yellow py-4px px-2 fs-9px d-inline-flex align-items-center text-uppercase"><i
-                                                            class="fa fa-circle opacity-5 fs-4px fa-fw me-2"></i>
-                                                        Pending</span>
-                                                @elseif ($tracking->package_status == 'delivered')
-                                                    <span
-                                                        class="badge bg-primary bg-opacity-15 text-primary py-4px px-2 fs-9px d-inline-flex align-items-center text-uppercase"><i
-                                                            class="fa fa-circle opacity-5 fs-4px fa-fw me-2"></i>
-                                                        DELIVERED</span>
-                                                @elseif ($tracking->package_status == 'in_transit')
-                                                    <span
-                                                        class="badge bg-white bg-opacity-15 text-white text-opacity-75 py-4px px-2 fs-9px d-inline-flex align-items-center text-uppercase"><i
-                                                            class="fa fa-circle opacity-5 fs-4px fa-fw me-2"></i> In
-                                                        transit</span>
-                                                @else
-                                                    <span
-                                                        class="badge bg-gray bg-opacity-15 text-gray py-4px px-2 fs-9px d-inline-flex align-items-center text-uppercase"><i
-                                                            class="fa fa-circle opacity-5 fs-4px fa-fw me-2"></i> Unknown
-                                                        Status</span>
-                                                @endif
-                                            </td>
-                                            <!-- Shipping Method -->
-                                            <td class="align-middle text-uppercase">
-                                                {{ $tracking->shipping_method ?? 'N/A' }}</td>
-                                            <!-- Shipping Date -->
-                                            {{-- <td class="align-middle">{{ $tracking->ship_date ? \Carbon\Carbon::parse($tracking->ship_date)->format('D d M, H:i A') : 'N/A' }}</td> --}}
-                                            <!-- Estimated Delivery Date -->
-                                            {{-- <td class="align-middle">{{ $tracking->delivery_date ? \Carbon\Carbon::parse($tracking->delivery_date)->format('D d M, H:i A') : 'N/A' }}</td> --}}
+                                            <td>{{ $tracking->tracking_number }}</td>
+                                            <td>{{ $tracking->package->package_name ?? 'N/A' }}</td>
+                                            <td>@include('partials.status-badge', ['status' => $tracking->package_status])</td>
+                                            <td class="text-uppercase">{{ $tracking->shipping_method ?? 'N/A' }}</td>
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <!-- View Button -->
+                                                    <button type="button" 
+                                                            class="btn btn-info btn-sm view-tracking" 
+                                                            data-tracking-id="{{ $tracking->id }}">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
 
-                                            <td class="align-middle">
-                                                <button type="button" class="btn btn-info btn-sm track-button"
-                                                    data-bs-toggle="modal" data-bs-target="#modalXl"
-                                                    data-tracking-id="{{ $tracking->id }}">
-                                                    View
-                                                </button>
-                                                <a href="{{ route('trackings.edit', $tracking->id) }}"
-                                                    class="btn btn-warning btn-sm">Edit</a>
-                                                <form action="{{ route('trackings.destroy', $tracking->id) }}"
-                                                    method="POST" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                                </form>
+                                                    <!-- Edit Button -->
+                                                    <a href="{{ route('trackings.edit', $tracking->id) }}" 
+                                                       class="btn btn-warning btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+
+                                                    <!-- Delete Button -->
+                                                    <form action="{{ route('trackings.destroy', $tracking->id) }}" 
+                                                          method="POST"
+                                                          class="d-inline"
+                                                          data-tracking-count="{{ $tracking->package ? 1 : 0 }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" 
+                                                                class="btn btn-sm btn-danger px-3 delete-tracking">
+                                                            <i class="fas fa-trash fa-fw"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                <div class="text-muted">No tracking records found</div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                    @include('partials.tracking-modal')
 
-                                        <!-- Modal Structure -->
-                                        <div class="modal fade" id="modalXl">
-                                            <div class="modal-dialog modal-xl">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="modal-title"></h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body text-uppercase">
-                                                        <div id="tracking-details"></div>
-
-                                                        <!-- Tracking Details -->
-                                                        <h6>Tracking</h6>
-                                                        <ul>
-                                                            <li class="mb-2">Tracking Number: <span class="text-lime-400"
-                                                                    id="tracking-number"></span></li>
-                                                            <li class="mb-2">Status: <span id="package-status"></span>
-                                                            </li>
-                                                            <li class="mb-2">Shipping Method: <span
-                                                                    id="shipping-method"></span></li>
-                                                            <li class="mb-2">Ship Date: <span id="ship-date"></span></li>
-                                                            <li class="mb-2">Delivery Date: <span
-                                                                    id="delivery-date"></span></li>
-                                                            <li class="mb-2">Carrier Name: <span id="carrier-name"></span>
-                                                            </li>
-                                                            <li class="mb-2">Shipping Cost: <span
-                                                                    id="shipping-cost"></span></li>
-                                                            <li class="mb-2">Delay: <span id="is-delayed"></span></li>
-                                                            <li class="mb-2">Returned: <span id="is-returned"></span></li>
-                                                            <li class="mb-2">Insured: <span id="is-insured"></span></li>
-                                                        </ul>
-
-                                                        <!-- Address Details -->
-                                                        <h6>Address</h6>
-                                                        <ul>
-                                                            <li class="mb-2">Address: <span id="address"></span></li>
-                                                            <li class="mb-2">City: <span id="city"></span></li>
-                                                            <li class="mb-2">State: <span id="state"></span></li>
-                                                            <li class="mb-2">Zip Code: <span id="zipCode"></span></li>
-                                                            <li class="mb-2">Country: <span id="country"></span></li>
-                                                        </ul>
-
-                                                        <!-- Package Details -->
-                                                        <h6>Package</h6>
-                                                        <ul>
-                                                            <li class="mb-2">Name: <span id="package-name"></span></li>
-                                                            <li class="mb-2">Description: <span id="description"></span>
-                                                            </li>
-                                                            <li class="mb-2">Weight: <span id="weight"></span></li>
-                                                            <li class="mb-2">Amount: <span id="amount"></span></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
                                 </tbody>
                             </table>
 
                         </div>
                         <!-- END table -->
 
-                        <div class="d-md-flex align-items-center">
-                            <div class="me-md-auto text-md-left text-center mb-2 mb-md-0">
-                                Showing 1 to 20 of 57 entries
+                        @if($trackings->hasPages())
+                            <div class="d-flex justify-content-end mt-4">
+                                {{ $trackings->onEachSide(1)->links() }}
                             </div>
-                            <ul class="pagination mb-0 justify-content-center">
-                                <li class="page-item disabled"><a class="page-link">Previous</a></li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                <li class="page-item"><a class="page-link" href="#">6</a></li>
-                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                            </ul>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
 
 
-            <div class="card">
-
+            <div class="card mt-5">
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="allTab">
-                        <!-- BEGIN input-group -->
-                        <div class="input-group mb-4">
-                            <div class="flex-fill position-relative">
-                                <div class="mb-3">
-                                    <h4>Packages Information</h4>
-
+                    <div class="tab-pane fade show active" id="packagesTab">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <h4 class="card-title mb-0">Packages Information</h4>
+                            <div class="flex-fill position-relative ms-3" style="max-width: 400px;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search packages..." 
+                                           id="packageSearch" aria-label="Package search">
+                                    <button class="btn btn-outline-secondary" type="button" id="packageSearchBtn">
+                                        <i class="fas fa-search"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <!-- END input-group -->
 
-                        <!-- BEGIN table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover text-nowrap small mb-4">
-                                <thead>
-                                    <tr class="text-uppercase">
-                                        <th>Package Name</th>
-                                        <th>Description</th>
-                                        <th>Weight</th>
-                                        <th>Amount</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($packages as $package)
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-packages table-hover align-middle mb-0">
+                                    <thead class="table-dark">
                                         <tr>
-                                            <td class="align-middle">{{ $package->package_name }}</td>
-                                            <td class="align-middle">{{ $package->description }}</td>
-                                            <td class="align-middle">{{ $package->weight }} kg</td>
-                                            <td class="align-middle">${{ number_format($package->amount, 2) }}</td>
-                                            <td class="align-middle">
-                                                <!-- Action buttons, adjust based on your requirements -->
-                                                {{-- <a href="{{ route('packages.show', $package->id) }}"
-                                                    class="btn btn-info btn-sm">View</a> --}}
-                                                <a href="{{ route('packages.edit', $package->id) }}"
-                                                    class="btn btn-warning btn-sm">Edit</a>
-                                                <form action="{{ route('packages.destroy', $package->id) }}"
-                                                    method="POST" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                                </form>
+                                            <th class="sortable" data-sort="package_name">Name</th>
+                                            <th class="sortable" data-sort="description">Description</th>
+                                            <th class="sortable text-end" data-sort="weight">Weight</th>
+                                            <th class="sortable text-end" data-sort="amount">Amount</th>
+                                            <th class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($packages as $package)
+                                        <tr class="hover-shadow">
+                                            <td class="text-nowrap">{{ Str::limit($package->package_name, 25) }}</td>
+                                            <td>{{ Str::limit($package->description, 40) }}</td>
+                                            <td class="text-end">{{ number_format($package->weight) }} kg</td>
+                                            <td class="text-end">${{ number_format($package->amount, 2) }}</td>
+                                            <td class="text-center">
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <a href="{{ route('packages.edit', $package->id) }}" 
+                                                       class="btn btn-sm btn-warning px-3 py-1">
+                                                       <i class="fas fa-edit fa-fw"></i>
+                                                    </a>
+                                                    <form action="{{ route('packages.destroy', $package->id) }}" 
+                                                          method="POST"
+                                                          data-tracking-count="{{ $package->trackings()->count() }}"
+                                                          class="delete-package">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" 
+                                                                class="btn btn-sm btn-danger px-3 py-1 delete-package">
+                                                            <i class="fas fa-trash fa-fw"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
-
-                                        @if (session('warning'))
-                                            <div class="modal fade" id="modalSm{{ $package->id }}">
-                                                <div class="modal-dialog modal-sm">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Package Details</h5>
-                                                            <button type="button" class="btn-close"
-                                                                data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p><strong>Name:</strong> {{ $package->package_name ?? 'N/A' }}
-                                                            </p>
-                                                            <p><strong>Description:</strong>
-                                                                {{ $package->description ?? 'N/A' }}</p>
-                                                            <p><strong>Weight:</strong> {{ $package->weight ?? 'N/A' }} kg
-                                                            </p>
-                                                            <p><strong>Amount:</strong> ${{ $package->amount ?? 'N/A' }}
-                                                            </p>
-                                                            <p><strong>Warning:</strong> {{ session('warning') }}</p>
-
-                                                            <form id="deleteForm{{ $package->id }}" action="{{ route('packages.destroy', $package->id) }}" method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <input type="hidden" name="confirm_delete" value="1"> <!-- NEW HIDDEN INPUT -->
-                                                                <button type="submit" class="btn btn-danger">Yes, Delete Anyway</button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
-
-                        </div>
-                        <!-- END table -->
-
-                        <div class="d-md-flex align-items-center">
-                            <div class="me-md-auto text-md-left text-center mb-2 mb-md-0">
-                                Showing 1 to 20 of 57 entries
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
-                            <ul class="pagination mb-0 justify-content-center">
-                                <li class="page-item disabled"><a class="page-link">Previous</a></li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                <li class="page-item"><a class="page-link" href="#">6</a></li>
-                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                            </ul>
+
+                            @if($packages->hasPages())
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <div class="text-muted">
+                                    Showing {{ $packages->firstItem() }} to {{ $packages->lastItem() }} of {{ $packages->total() }} entries
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    {{ $packages->onEachSide(1)->links() }}
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -329,38 +194,161 @@
         <script src="{{ asset('admin-assets/js/getTrackingDetails.js') }}"></script>
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    @endpush
-
-    @if (session('warning'))
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                let packageId = "{{ session('package_id') }}"; // Retrieve package ID from session
-                console.log("Tracking ID:", packageId); // Debugging log
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('trackingModal'));
+            
+            document.querySelectorAll('.view-tracking').forEach(button => {
+                button.addEventListener('click', function() {
+                    const trackingId = this.dataset.trackingId;
+                    console.log('Button clicked, tracking ID:', trackingId);
+                    
+                    fetch(`/trackings/${trackingId}`)
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                console.error('HTTP error:', response.status);
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('API Response:', data);
+                            
+                            // Validate response structure
+                            if (!data.tracking || !data.tracking.address || !data.tracking.package) {
+                                console.error('Invalid response structure:', data);
+                                throw new Error('Invalid response format');
+                            }
+                            
+                            // Clear previous data
+                            document.querySelectorAll('.modal-body span').forEach(span => span.textContent = '');
+                            
+                            // Populate Tracking Details
+                            document.getElementById('tracking-number').textContent = data.tracking.tracking_number;
+                            document.getElementById('package-status').innerHTML = data.statusBadge; // Use innerHTML
+                            
+                            // Handle empty values
+                            const setValue = (id, value) => {
+                                const element = document.getElementById(id);
+                                if (element) element.textContent = value || 'N/A';
+                            };
 
-                let checkLoader = setInterval(function() {
-                    let loader = document.querySelector('.loader');
-                    if (!loader || loader.style.display === 'none') {
-                        clearInterval(checkLoader);
+                            // Tracking Details
+                            setValue('shipping-method', data.tracking.shipping_method);
+                            setValue('ship-date', data.tracking.ship_date);
+                            setValue('delivery-date', data.tracking.delivery_date);
+                            setValue('current-location', data.tracking.current_location);
+                            setValue('carrier-name', data.tracking.carrier_name);
+                            setValue('shipping-cost', `$${data.tracking.shipping_cost}`);
 
-                        var modalId = "modalSm" + packageId; // Correct JavaScript concatenation
-                        console.log("Modal ID:", modalId); // Debugging log
+                            // For Delay
+                            const delayStatus = data.tracking.is_delayed ? 'Yes' : 'No';
+                            const delayClass = data.tracking.is_delayed ? 'text-lime-400' : 'text-danger-400';
+                            document.getElementById('is-delayed').innerHTML = `<span class="${delayClass}">${delayStatus}</span>`;
 
-                        var myModalElement = document.getElementById(modalId);
-                        if (myModalElement) {
-                            var myModal = new bootstrap.Modal(myModalElement);
-                            myModal.show();
+                            // For Returned
+                            const returnedStatus = data.tracking.is_returned ? 'Yes' : 'No';
+                            const returnedClass = data.tracking.is_returned ? 'text-lime-400' : 'text-danger-400';
+                            document.getElementById('is-returned').innerHTML = `<span class="${returnedClass}">${returnedStatus}</span>`;
 
-                            myModalElement.addEventListener('hidden.bs.modal', function() {
-                                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                            // For Insured
+                            const insuredStatus = data.tracking.is_insured ? 'Yes' : 'No';
+                            const insuredClass = data.tracking.is_insured ? 'text-lime-400' : 'text-danger-400';
+                            document.getElementById('is-insured').innerHTML = `<span class="${insuredClass}">${insuredStatus}</span>`;
+
+                            // Address Details
+                            setValue('address', data.tracking.address.address);
+                            setValue('city', data.tracking.address.city);
+                            setValue('state', data.tracking.address.state);
+                            setValue('zipCode', data.tracking.address.zipCode);
+                            setValue('country', data.tracking.address.country);
+
+                            // Package Details
+                            setValue('package-name', data.tracking.package.package_name);
+                            setValue('description', data.tracking.package.description);
+                            setValue('weight', `${data.tracking.package.weight} kg`);
+                            setValue('amount', `$${data.tracking.package.amount}`);
+
+                            modal.show();
+                            document.body.classList.add('modal-open');
+                            document.body.style.overflow = 'hidden';
+                            document.body.style.paddingRight = '0';
+
+                            // Handle modal hidden event
+                            document.getElementById('trackingModal').addEventListener('hidden.bs.modal', function () {
                                 document.body.classList.remove('modal-open');
                                 document.body.style.overflow = '';
+                                document.body.style.paddingRight = '';
+                                document.querySelector('.modal-backdrop').remove();
                             });
-                        } else {
-                            console.error("Modal with ID", modalId, "not found.");
-                        }
-                    }
-                }, 500);
+                        })
+                        .catch(error => {
+                            console.error('Error during fetch:', error);
+                            alert(`Error: ${error.message}`);
+                        });
+                });
             });
+        });
         </script>
-    @endif
+    @endpush
+
+    @push('scripts')
+    <script>
+    document.addEventListener('click', function(event) {
+        // Handle package deletions
+        if (event.target.closest('.delete-package')) {
+            event.preventDefault();
+            const form = event.target.closest('form');
+            const trackingCount = parseInt(form.dataset.trackingCount) || 0;
+            
+            Swal.fire({
+                title: 'Delete Package?',
+                html: trackingCount > 0 
+                    ? `Package has ${trackingCount} tracking records.<br><strong>Delete anyway?</strong>`
+                    : 'This will permanently delete the package.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                result.isConfirmed && form.submit();
+            });
+        }
+
+        // Handle tracking deletions
+        if (event.target.closest('.delete-tracking')) {
+            event.preventDefault();
+            const form = event.target.closest('form');
+            const packageCount = parseInt(form.dataset.trackingCount) || 0;
+
+            Swal.fire({
+                title: 'Delete Tracking Record?',
+                html: packageCount > 0 
+                    ? `This tracking info is linked to an address and a package.<br><strong>Delete anyway?</strong>`
+                    : 'This will permanently delete the tracking record.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                result.isConfirmed && form.submit();
+            });
+        }
+    });
+    </script>
+    @endpush
+
+    @push('scripts')
+    <script>
+    document.querySelector('.delete-tracking').addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Delete tracking clicked');
+        Swal.fire('Test');
+    });
+    </script>
+    @endpush
+
 @endsection

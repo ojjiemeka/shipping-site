@@ -4,8 +4,8 @@
     @include('components.loader')
 
     @include('components.adminHeader', [
-        'title' => $title,
-        'description' => $description,
+        'title' => 'Create New Tracking',
+        'description' => 'Multi-step form for creating shipment tracking'
     ])
 
     @include('components.adminSidebar')
@@ -41,24 +41,14 @@
                                     <div class="card-body">
                                         <div class="nav-wizards-container">
                                             <nav class="nav nav-wizards-1 mb-2">
+                                                @foreach(['Enter Package Details', 'Create Tracking Details', 'Review & Confirm'] as $index => $text)
                                                 <div class="nav-item col">
-                                                    <a class="nav-link" id="step1-tab" href="#">
-                                                        <div class="nav-no">1</div>
-                                                        <div class="nav-text">Enter Package Detials</div>
+                                                    <a class="nav-link" id="step{{ $index+1 }}-tab" href="#">
+                                                        <div class="nav-no">{{ $index+1 }}</div>
+                                                        <div class="nav-text">{{ $text }}</div>
                                                     </a>
                                                 </div>
-                                                <div class="nav-item col">
-                                                    <a class="nav-link" id="step2-tab" href="#">
-                                                        <div class="nav-no">2</div>
-                                                        <div class="nav-text">Create Tracking Details</div>
-                                                    </a>
-                                                </div>
-                                                <div class="nav-item col">
-                                                    <a class="nav-link" id="step3-tab" href="#">
-                                                        <div class="nav-no">3</div>
-                                                        <div class="nav-text">Review & Confirm</div>
-                                                    </a>
-                                                </div>
+                                                @endforeach
                                             </nav>
                                         </div>
                                         <div class="card">
@@ -248,21 +238,21 @@
                                                                 <div class="col-sm-10">
                                                                     <div class="form-check">
                                                                         <input class="form-check-input" type="radio"
-                                                                            name="package_status" id="packageStatus"
+                                                                            name="package_status" id="statusInTransit"
                                                                             value="in_transit" checked>
                                                                         <label class="form-check-label"
                                                                             for="statusInTransit">In Transit</label>
                                                                     </div>
                                                                     <div class="form-check">
                                                                         <input class="form-check-input" type="radio"
-                                                                            name="package_status" id="packageStatus"
+                                                                            name="package_status" id="statusDelivered"
                                                                             value="delivered">
                                                                         <label class="form-check-label"
                                                                             for="statusDelivered">Delivered</label>
                                                                     </div>
                                                                     <div class="form-check">
                                                                         <input class="form-check-input" type="radio"
-                                                                            name="package_status" id="packageStatus "
+                                                                            name="package_status" id="statusPending"
                                                                             value="pending">
                                                                         <label class="form-check-label"
                                                                             for="statusPending">Pending</label>

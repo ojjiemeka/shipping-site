@@ -17,7 +17,7 @@ class Addresses extends Model
         'country',
     ];
 
-    public function clients()
+    public function client()
     {
         return $this->belongsTo(Clients::class, 'customer_id');
     }

@@ -15,9 +15,14 @@ class Clients extends Model
         'phone',
     ];
 
-   
+
     public function address()
     {
-        return $this->hasOne(Addresses::class, 'customer_id', 'id',);
+        return $this->hasOne(Addresses::class, 'customer_id');
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->firstName} {$this->lastName}");
     }
 }

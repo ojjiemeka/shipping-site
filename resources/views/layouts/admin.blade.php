@@ -13,6 +13,7 @@
     <link href="{{ asset('admin-assets/css/app.min.css') }}" rel="stylesheet" />
     <!-- ================== END core-css ================== -->
     <link href="{{ asset('admin-assets/plugins/jvectormap-next/jquery-jvectormap.css') }}" rel="stylesheet" />
+    <link href="{{ asset('admin-assets/css/admin-tables.css') }}" rel="stylesheet">
 
     <style>
         .app-loader {
@@ -32,6 +33,8 @@
             display: none;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
 
 <body>
@@ -102,6 +105,37 @@
         gtag('js', new Date());
         gtag('config', 'G-Y3Q0VGQKY3');
     </script>
+
+    @push('scripts')
+    <script>
+    function confirmDelete(event, packageId, trackingCount) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        
+        if (trackingCount > 0) {
+            Swal.fire({
+                title: 'Confirm Deletion',
+                html: `This package has ${trackingCount} tracking records.<br>Delete anyway?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        } else {
+            if (confirm('Delete this package permanently?')) {
+                form.submit();
+            }
+        }
+        
+        return false;
+    }
+    </script>
+    @endpush
 
     @stack('scripts')
 </body>

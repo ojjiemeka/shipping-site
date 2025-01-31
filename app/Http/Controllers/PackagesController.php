@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PackagesController extends Controller
 {
@@ -35,9 +37,7 @@ class PackagesController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->all();
-
-        $packageValidated = $request->validate([
+        $validated = $request->validate([
             'package_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'weight' => 'required|numeric|min:0',
@@ -45,21 +45,22 @@ class PackagesController extends Controller
         ]);
 
         try {
-            $package = Packages::create($packageValidated);
+            DB::beginTransaction();
+            
+            $package = Packages::create($validated);
+            
+            DB::commit();
+            
+            return redirect()->route('trackings.index')
+                ->with('success', 'Package created successfully!');
 
-            // Redirect with success message
-            Session::flash('success', 'Package created successfully!');
-            return redirect()->route('trackings.index');
         } catch (Exception $e) {
-            // Log the error message for debugging
-            Log::error('Error creating package or tracking: ' . $e->getMessage());
-
-            // Return a response with an error message to the user
-            Session::flash('error', 'There was an issue creating the package record. Please try again.');
-            return redirect()->back();
+            DB::rollBack();
+            Log::error('Package creation failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Package creation failed. Please try again.');
         }
-
-        // dd($packageValidated);
     }
 
     /**
@@ -91,30 +92,34 @@ class PackagesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // dd([$request->all(), $id]);
-
-        // Validate the input data
         $validated = $request->validate([
             'package_name' => 'required|string|max:255',
-            'weight'       => 'required|numeric',
-            'amount'       => 'required|numeric',
-            'description'  => 'nullable|string',
+            'weight' => 'required|numeric',
+            'amount' => 'required|numeric',
+            'description' => 'nullable|string',
         ]);
 
-        // Find the package by ID
-        $package = Packages::find($id);
-
-        // Check if the package exists
-        if (!$package) {
-            return redirect()->back()->withErrors(['error' => 'Package not found.']);
-        }
-
-        // Update package details
         try {
+            $package = Packages::findOrFail($id);
+            
+            DB::beginTransaction();
             $package->update($validated);
-            return redirect()->route('trackings.index')->with('success', 'Package updated successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Something went wrong. Please try again.']);
+            DB::commit();
+
+            return redirect()->route('trackings.index', $package->id)
+                ->with('success', 'Package updated successfully!');
+
+        } catch (ModelNotFoundException $e) {
+            Log::error('Package not found: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Package not found.');
+            
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Package update failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update package. Please try again.');
         }
     }
 
@@ -123,29 +128,34 @@ class PackagesController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
-        // Find the package by ID
-        $package = Packages::find($id);
+        try {
+            $package = Packages::findOrFail($id);
+            $trackingCount = $package->trackings()->count();
 
-        // Check if the package exists
-        if (!$package) {
-            return redirect()->back()->withErrors(['error' => 'Package not found.']);
+            if ($trackingCount > 0 && !$request->has('confirm_delete')) {
+                return redirect()->back()->with([
+                    'warning' => "This package has $trackingCount tracking records. Confirm deletion?",
+                    'package_id' => $id
+                ]);
+            }
+
+            DB::beginTransaction();
+            $package->delete();
+            DB::commit();
+
+            return redirect()->route('trackings.index')
+                ->with('success', 'Package deleted successfully.');
+
+        } catch (ModelNotFoundException $e) {
+            Log::error('Package not found during deletion: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Package not found.');
+            
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Package deletion failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to delete package. Please try again.');
         }
-
-        // Check if this package is linked to any trackings
-        $trackingCount = $package->trackings()->count();
-
-        // If package has tracking records and user has not confirmed deletion
-        if ($trackingCount >= 0 && !$request->has('confirm_delete')) {
-            return redirect()->back()->with([
-                'warning' => "This package is linked to $trackingCount other records. Are you sure you want to delete it?",
-                'package_id' => $id,
-                'package_info' => $package
-            ]);
-        }
-
-        // If user confirmed deletion, proceed
-        $package->delete();
-
-        return redirect()->back()->with(['success' => 'Package deleted successfully.']);
     }
 }

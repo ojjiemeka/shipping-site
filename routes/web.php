@@ -19,3 +19,5 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::resource('clients', ClientsController::class);
 Route::resource('trackings', TrackingController::class);
 Route::resource('packages', PackagesController::class);
+
+Route::get('/admin/clients/search', [ClientsController::class, 'search'])->name('clients.search');

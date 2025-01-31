@@ -29,6 +29,8 @@ class PackageFormWizard {
         this.nextBtn.style.display = this.currentStep === this.totalSteps ? 'none' : 'block';
         this.submitBtn.style.display = this.currentStep === this.totalSteps ? 'block' : 'none';
 
+        // console.log(`Current Step: ${this.currentStep}, Total Steps: ${this.totalSteps}`);
+
         document.querySelectorAll('.nav-link').forEach((tab, index) => {
             tab.classList.remove('completed', 'active');
             if (index + 1 < this.currentStep) {
@@ -84,16 +86,21 @@ class PackageFormWizard {
         if (!reviewContent) return;
 
         const formData = new FormData(this.form);
-        let html = '<table class="table table-bordered">';
+        let html = '<div class="table-responsive"><table class="table table-bordered">';
 
-        formData.forEach((value, key) => {
-            if (key !== '_token' && value) { // Exclude CSRF token
-                const formattedKey = key.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase());
-                html += `<tr><th class="w-25">${formattedKey}</th><td>${value}</td></tr>`;
-            }
-        });
+        for (let [key, value] of formData.entries()) {
+            // Skip the method and _token fields
+            if (key === '_method' || key === '_token') continue;
+            
+            // Format the key for display (convert snake_case to Title Case)
+            const formattedKey = key.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
 
-        html += '</table>';
+            html += `<tr><th width="200">${formattedKey}</th><td>${value}</td></tr>`;
+        }
+
+        html += '</table></div>';
         reviewContent.innerHTML = html;
     }
 }

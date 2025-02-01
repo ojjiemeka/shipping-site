@@ -131,9 +131,9 @@
                                         <i class="fab fa-dropbox fa-2x p-2"></i>
                                         <span class="fs-6">Add Package</span>
                                     </a>
-                                    <a href="{{ route('trackings.index') }}" class="text-theme hover-opacity-75 text-decoration-none d-flex flex-column align-items-center">
+                                    <a href="{{ route('trackings.create') }}" class="text-theme hover-opacity-75 text-decoration-none d-flex flex-column align-items-center">
                                         <i class="fas fa-address-book fa-2x p-2"></i>
-                                        <span class="fs-6">Manage Tracking</span>
+                                        <span class="fs-6">Add Tracking Info</span>
                                     </a>
                                     <a href="{{ route('clients.index') }}" class="text-theme hover-opacity-75 text-decoration-none d-flex flex-column align-items-center">
                                         <i class="fas fa-eye fa-2x p-2"></i>

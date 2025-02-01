@@ -13,14 +13,6 @@
                     <span class="menu-text">DASHBOARD</span>
                 </a>
             </div>
-            <div class="menu-item ">
-                <a href="analytics.html" class="menu-link">
-                    <span class="menu-icon">
-                        <iconify-icon icon="ph:chart-bar-duotone"></iconify-icon>
-                    </span>
-                    <span class="menu-text">ANALYTICS</span>
-                </a>
-            </div>
             <div class="menu-item has-sub ">
                 <a href="#" class="menu-link">
                     <span class="menu-icon">
@@ -31,17 +23,17 @@
                 </a>
                 <div class="menu-submenu">
                     <div class="menu-item ">
-                        <a href="email_inbox.html" class="menu-link">
+                        <a href="#" class="menu-link">
                             <span class="menu-text">INBOX</span>
                         </a>
                     </div>
                     <div class="menu-item ">
-                        <a href="email_compose.html" class="menu-link">
+                        <a href="#" class="menu-link">
                             <span class="menu-text">COMPOSE</span>
                         </a>
                     </div>
                     <div class="menu-item ">
-                        <a href="email_detail.html" class="menu-link">
+                        <a href="#" class="menu-link">
                             <span class="menu-text">DETAIL</span>
                         </a>
                     </div>
@@ -117,7 +109,7 @@
                 </div>
             </div> --}}
 
-            <div class="menu-header">USER PORTAL</div>
+            {{-- <div class="menu-header">USER PORTAL</div>
 
             <div class="menu-item ">
                 <a href="profile.html" class="menu-link">
@@ -134,10 +126,14 @@
                     </span>
                     <span class="menu-text">SETTINGS</span>
                 </a>
-            </div>
+            </div> --}}
         </div>
         <!-- END menu -->
     </div>
     <!-- END scrollbar -->
 </div>
 <!-- END #sidebar -->
+
+<!-- BEGIN mobile-sidebar-backdrop -->
+<button class="app-sidebar-mobile-backdrop" data-toggle-target=".app" data-toggle-class="app-sidebar-mobile-toggled"></button>
+<!-- END mobile-sidebar-backdrop -->

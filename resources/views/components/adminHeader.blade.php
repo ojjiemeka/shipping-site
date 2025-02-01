@@ -22,30 +22,14 @@
   <div class="brand">
     <a href="index.html" class="brand-logo w-100">
       <iconify-icon icon="lets-icons:time-progress-duotone" class="fs-24px me-2 text-theme"></iconify-icon>
-      <span class="brand-text fw-500 fs-14px">QUANTUM</span>
+      <span class="brand-text fw-500 fs-14px">ADMIN</span>
     </a>
   </div>
   <!-- END brand -->
   
   <!-- BEGIN menu -->
   <div class="menu">
-    <div class="menu-item dropdown">
-      <a href="#" class="menu-link menu-link-icon px-lg-3" data-bs-toggle="dropdown" data-bs-display="static">
-        <iconify-icon icon="ph:globe-duotone" class="menu-icon me-lg-2"></iconify-icon> 
-        <span class="d-lg-flex d-none">EN</span>
-      </a>
-      <div class="dropdown-menu fade dropdown-menu-end mt-1 fs-10px text-uppercase">
-        <a href="#" class="dropdown-item d-flex align-items-center">English <span class="ms-auto fw-semibold text-white w-20px text-center">EN</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">Spanish <span class="ms-auto fw-semibold text-white w-20px text-center">ES</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">French <span class="ms-auto fw-semibold text-white w-20px text-center">FR</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">German <span class="ms-auto fw-semibold text-white w-20px text-center">DE</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">Italian <span class="ms-auto fw-semibold text-white w-20px text-center">IT</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">Japanese <span class="ms-auto fw-semibold text-white w-20px text-center">JA</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">Chinese <span class="ms-auto fw-semibold text-white w-20px text-center">ZH</span></a>
-        <a href="#" class="dropdown-item d-flex align-items-center">Russian <span class="ms-auto fw-semibold text-white w-20px text-center">RU</span></a>
-      </div>
-    </div>
-    <div class="menu-item dropdown dropdown-mobile-full">
+    {{-- <div class="menu-item dropdown dropdown-mobile-full">
       <a href="#" data-bs-toggle="dropdown" data-bs-display="static" class="menu-link menu-link-icon">
         <iconify-icon icon="ph:warning-duotone" class="menu-icon"></iconify-icon>
       </a>
@@ -113,7 +97,7 @@
         </a>
         <a class="dropdown-item fs-10px text-center py-2 d-block" href="messenger.html">VIEW ALL</a>
       </div>
-    </div>
+    </div> --}}
 
     
     <div class="menu-item dropdown dropdown-mobile-full">
@@ -127,8 +111,10 @@
       </a>
       <div class="dropdown-menu dropdown-menu-end me-lg-3 fs-10px fade">
         <h6 class="dropdown-header">USER OPTIONS</h6>
-        <a class="dropdown-item" href="settings.html">ACCOUNT SETTINGS</a>
-        <a class="dropdown-item" href="page_login.html">LOG OUT</a>
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="dropdown-item fs-10px">LOG OUT</button>
+        </form>
       </div>
     </div>
   </div>

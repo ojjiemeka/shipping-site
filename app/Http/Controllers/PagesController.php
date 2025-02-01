@@ -11,6 +11,12 @@ use App\Models\Clients;
 
 class PagesController extends Controller
 {
+    public function index()
+{
+
+    return view('pages.user.index');
+}
+
     public function dashboard()
     {
         return view('pages.admin.dashboard', [
@@ -22,4 +28,21 @@ class PagesController extends Controller
             'clientCount' => Clients::count()
         ]);
     }
+
+    public function aboutUs(){
+        // dd('hi');
+        return view('pages.user.about');
+    }
+    
+    public function trackPackage(){
+        return view('pages.user.tracking', [
+            'tracking' => null // Initialize tracking variable
+        ]);
+    }
+
+    public function contactUs(){
+        // dd('hi');
+        return view('pages.user.contactUs');
+    }
+    
 }
